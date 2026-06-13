@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     View,
+    Image,
     TouchableOpacity,
     Text,
     ActivityIndicator,
@@ -206,18 +207,9 @@ export default function App() {
             case 'header':
                 return (
                     <View style={styles.header}>
-                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text style={styles.title}>🌤️ Aero</Text>
-                            <View style={{ alignItems: 'center', flexDirection: 'row' }}>
-                                <Text style={{ color: '#fff', marginRight: 8 }}>{units === 'metric' ? 'Metric' : 'Imperial'}</Text>
-                                <Switch
-                                    value={units === 'imperial'}
-                                    onValueChange={toggleUnits}
-                                    thumbColor={units === 'imperial' ? '#fff' : '#fff'}
-                                    trackColor={{ false: 'rgba(255,255,255,0.3)', true: 'rgba(255,255,255,0.6)' }}
-                                />
+                            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                                <Image source={require('./assets/Aero.png')} style={styles.logo} />
                             </View>
-                        </View>
                         <Text style={styles.subtitle}>
                             Search with autocomplete suggestions
                         </Text>
@@ -305,7 +297,7 @@ export default function App() {
                     </View>
                 );
             case 'weather':
-                return <WeatherCard weatherData={weatherData} />;
+                return <WeatherCard weatherData={weatherData} units={units} toggleUnits={toggleUnits} />;
             case 'forecast':
                 return <ForecastCard forecastData={forecastData} />;
             case 'footer':
@@ -366,6 +358,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#fff',
         marginBottom: 8,
+    },
+    logo: {
+        width: 220,
+        height: 100,
+        resizeMode: 'contain',
+        marginBottom: 12,
     },
     subtitle: {
         fontSize: 14,

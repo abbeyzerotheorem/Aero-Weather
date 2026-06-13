@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Switch } from 'react-native';
 import LottieView from 'lottie-react-native';
 
 // Map OpenWeather icon codes to the user-downloaded Lottie JSON files
@@ -24,7 +24,7 @@ const animationMap = {
     '50n': require('../assets/lottie/fog.json'),
 };
 
-const WeatherCard = ({ weatherData }) => {
+const WeatherCard = ({ weatherData, units = 'metric', toggleUnits = () => {} }) => {
     if (!weatherData) return null;
 
     // Map OpenWeatherMap icon codes to the existing Lottie JSON assets
@@ -47,10 +47,23 @@ const WeatherCard = ({ weatherData }) => {
 
     return (
         <View style={styles.card}>
-            {/* City Name */}
+            {/* City Name + Units Toggle */}
             <View style={styles.headerContainer}>
-                <Text style={styles.cityName}>{weatherData.cityName}</Text>
-                <Text style={styles.country}>{weatherData.country}</Text>
+                <View style={styles.headerRow}>
+                    <View>
+                        <Text style={styles.cityName}>{weatherData.cityName}</Text>
+                        <Text style={styles.country}>{weatherData.country}</Text>
+                    </View>
+                    <View style={styles.switchContainer}>
+                        <Text style={styles.switchLabel}>{units === 'metric' ? 'Metric' : 'Imperial'}</Text>
+                        <Switch
+                            value={units === 'imperial'}
+                            onValueChange={toggleUnits}
+                            thumbColor="#fff"
+                            trackColor={{ false: 'rgba(0,0,0,0.06)', true: 'rgba(0,0,0,0.12)' }}
+                        />
+                    </View>
+                </View>
             </View>
             
             {/* Temperature & Animation */}
@@ -142,6 +155,20 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
         paddingBottom: 15,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    },
+    switchContainer: {
+        alignItems: 'center',
+    },
+    switchLabel: {
+        fontSize: 12,
+        color: '#999',
+        marginBottom: 6,
     },
     cityName: {
         fontSize: 32,
