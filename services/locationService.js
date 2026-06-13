@@ -1,8 +1,16 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 
 // OpenWeatherMap Geocoding API
 const GEOCODING_URL = 'https://api.openweathermap.org/geo/1.0';
-const API_KEY = 'edeb15f9490156ee9157f2953120af25'; // Use same API key
+const API_KEY = (
+    (typeof process !== 'undefined' && process.env && process.env.OPENWEATHER_API_KEY) ||
+    (Constants?.expoConfig?.extra?.OPENWEATHER_API_KEY) ||
+    (Constants?.manifest?.extra?.OPENWEATHER_API_KEY) ||
+    '<REPLACE_WITH_YOUR_OPENWEATHERMAP_API_KEY>'
+); // Use same API key
+
+// Debug logging removed.
 
 // Search for cities by name (autocomplete)
 export const searchCities = async (query) => {

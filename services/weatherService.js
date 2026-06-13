@@ -1,7 +1,16 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 
-// Replace with your actual OpenWeatherMap API key
-const API_KEY = 'edeb15f9490156ee9157f2953120af25';
+// IMPORTANT: Do NOT commit API keys. Prefer environment variables or secure storage.
+// Read from multiple places for compatibility: process.env, Expo app config (`expoConfig.extra`), or older `manifest.extra`.
+const API_KEY = (
+    (typeof process !== 'undefined' && process.env && process.env.OPENWEATHER_API_KEY) ||
+    (Constants?.expoConfig?.extra?.OPENWEATHER_API_KEY) ||
+    (Constants?.manifest?.extra?.OPENWEATHER_API_KEY) ||
+    '<REPLACE_WITH_YOUR_OPENWEATHERMAP_API_KEY>'
+);
+
+// Debug logging removed.
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
 // Helper function to determine if it's day or night
