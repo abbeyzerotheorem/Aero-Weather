@@ -207,7 +207,7 @@ export default function App() {
                 return (
                     <View style={styles.header}>
                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text style={styles.title}>🌤️ Weather App</Text>
+                            <Text style={styles.title}>🌤️ Aero</Text>
                             <View style={{ alignItems: 'center', flexDirection: 'row' }}>
                                 <Text style={{ color: '#fff', marginRight: 8 }}>{units === 'metric' ? 'Metric' : 'Imperial'}</Text>
                                 <Switch

@@ -24,6 +24,7 @@
   },
   "private": true,
   "devDependencies": {
+    "dotenv": "^17.4.2",
     "react-native-svg-transformer": "^1.5.3"
   }
 }
