@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-const ForecastCard = ({ forecastData }) => {
+const ForecastCard = ({ forecastData, isCached = false }) => {
     if (!forecastData || !forecastData.forecast) return null;
+
+    const [LottieComp, setLottieComp] = useState(null);
+
+    useEffect(() => {
+        let mounted = true;
+        import('lottie-react-native')
+            .then((mod) => {
+                if (mounted && mod && mod.default) setLottieComp(() => mod.default);
+            })
+            .catch(() => {});
+        return () => { mounted = false };
+    }, []);
 
     const days = Object.keys(forecastData.forecast);
     
@@ -44,10 +56,10 @@ const ForecastCard = ({ forecastData }) => {
         return (
             <View style={styles.forecastDay}>
                 <Text style={styles.dayName}>{item.day}</Text>
-                {animationSource ? (
-                    <LottieView source={animationSource} autoPlay loop style={styles.smallLottie} />
+                {animationSource && LottieComp ? (
+                    <LottieComp source={animationSource} autoPlay loop style={styles.smallLottie} />
                 ) : (
-                    <Text style={styles.weatherEmoji}>{dayData.weatherEmoji}</Text>
+                    <Ionicons name="cloud-outline" size={40} color="#999" style={styles.weatherEmoji} />
                 )}
                 <Text style={styles.temperature}>
                     {dayData.temperature}{forecastData.units === 'imperial' ? '°F' : '°C'}
@@ -56,8 +68,14 @@ const ForecastCard = ({ forecastData }) => {
                     {dayData.weatherText}
                 </Text>
                 <View style={styles.detailRow}>
-                    <Text style={styles.detailText}>💧 {dayData.humidity}%</Text>
-                    <Text style={styles.detailText}>💨 {dayData.windSpeed} m/s</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="water-outline" size={14} color="#999" style={{ marginRight: 6 }} />
+                        <Text style={styles.detailText}>{dayData.humidity}%</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="speedometer-outline" size={14} color="#999" style={{ marginRight: 6 }} />
+                        <Text style={styles.detailText}>{dayData.windSpeed} m/s</Text>
+                    </View>
                 </View>
             </View>
         );
@@ -65,7 +83,11 @@ const ForecastCard = ({ forecastData }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>📅 5-Day Forecast</Text>
+            <View style={styles.titleRow}>
+                <Ionicons name="calendar-outline" size={18} color="#333" style={{ marginRight: 8 }} />
+                <Text style={styles.title}>5-Day Forecast</Text>
+                {isCached && <Text style={styles.cachedLabel}>cached</Text>}
+            </View>
             <FlatList
                 data={forecastArray}
                 renderItem={renderForecastItem}
@@ -98,25 +120,40 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: 'center',
     },
+    titleRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    cachedLabel: {
+        fontSize: 12,
+        color: '#999',
+        marginLeft: 8,
+    },
     flatListContent: {
-        paddingRight: 10,
+        paddingLeft: 18,
+        paddingRight: 18,
+        alignItems: 'center',
     },
     forecastDay: {
         backgroundColor: '#f8f8f8',
         borderRadius: 15,
-        padding: 15,
+        paddingVertical: 16,
+        paddingHorizontal: 12,
         marginRight: 12,
-        minWidth: 120,
+        width: 140,
         alignItems: 'center',
+        justifyContent: 'center',
     },
     dayName: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#007AFF',
-        marginBottom: 10,
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: 8,
+        textAlign: 'center',
     },
     weatherEmoji: {
-        fontSize: 40,
         marginBottom: 8,
     },
     smallLottie: {
@@ -135,12 +172,14 @@ const styles = StyleSheet.create({
         color: '#666',
         textAlign: 'center',
         marginBottom: 10,
+        width: '100%',
+        flexShrink: 1,
     },
     detailRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        marginTop: 5,
+        marginTop: 8,
     },
     detailText: {
         fontSize: 11,

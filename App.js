@@ -13,6 +13,7 @@ import {
     ScrollView,
     RefreshControl,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCurrentWeather, getForecast } from './services/weatherService';
 import AutocompleteInput from './components/AutocompleteInput';
@@ -20,7 +21,7 @@ import WeatherCard from './components/WeatherCard';
 import ForecastCard from './components/ForecastCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
-
+import t from './services/i18n';
 
 
 export default function App() {
@@ -32,11 +33,15 @@ export default function App() {
     const [error, setError] = useState('');
     const [units, setUnits] = useState('metric'); // 'metric' or 'imperial'
     const [recentSearches, setRecentSearches] = useState([]);
+    const [isWeatherCached, setIsWeatherCached] = useState(false);
+    const [isForecastCached, setIsForecastCached] = useState(false);
 
     useEffect(() => {
         loadLastCity();
         loadRecentCities();
     }, []);
+
+    
 
     const loadRecentCities = async () => {
         try {
@@ -69,11 +74,11 @@ export default function App() {
 
     const confirmClearRecentCities = () => {
         Alert.alert(
-            'Clear recent searches',
-            'Are you sure you want to clear recent searches?',
+            t('clear') || 'Clear',
+            t('clear_recent_confirm') || 'Are you sure you want to clear recent searches?',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Clear', style: 'destructive', onPress: clearRecentCities }
+                { text: t('clear') || 'Clear', style: 'destructive', onPress: clearRecentCities }
             ]
         );
     };
@@ -112,6 +117,9 @@ export default function App() {
         }
         setError('');
         Keyboard.dismiss();
+        // reset cache indicators for this fetch
+        setIsWeatherCached(false);
+        setIsForecastCached(false);
 
         try {
             const usedUnits = unitsArg || units;
@@ -123,6 +131,9 @@ export default function App() {
             
             setWeatherData(current);
             setForecastData(forecast);
+            // track if data came from cache (for UI badges)
+            setIsWeatherCached(!!current?._fromCache);
+            setIsForecastCached(!!forecast?._fromCache);
             await saveLastCity(cityName);
 
             // Update recent searches (most recent first, unique, max 5)
@@ -161,6 +172,8 @@ export default function App() {
         setWeatherData(null);
         setForecastData(null);
         setError('');
+        setIsWeatherCached(false);
+        setIsForecastCached(false);
     };
 
     const getCurrentLocation = async () => {
@@ -210,51 +223,48 @@ export default function App() {
                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                                 <Image source={require('./assets/Aero.png')} style={styles.logo} />
                             </View>
-                        <Text style={styles.subtitle}>
-                            Search with autocomplete suggestions
-                        </Text>
-                        {weatherData && (
-                            <View style={styles.apiInfo}>
-                                <Text style={styles.apiInfoText}>
-                                    ✅ Free Plan: 60 calls/minute available
-                                </Text>
-                            </View>
-                        )}
+                        {/* subtitle and API badge removed for cleaner UI */}
                     </View>
                 );
             case 'search':
                 return (
                     <View style={styles.searchSection}>
-                        <Text style={styles.label}>Search for a City</Text>
+                        <Text style={styles.label} accessibilityRole="header">{t('search_label')}</Text>
                         
                         <AutocompleteInput
                             value={city}
                             onChangeText={setCity}
                             onSelectCity={handleSelectCity}
-                            placeholder="Type city name (e.g., London, Paris, Tokyo)..."
+                            placeholder={t('search_placeholder')}
+                            accessibilityLabel={t('search_label')}
                         />
                         
                         {city.length > 0 && (
                             <TouchableOpacity 
                                 style={styles.clearButton}
                                 onPress={handleClear}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('clear')}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
-                                <Text style={styles.clearButtonText}>Clear</Text>
+                                <Text style={styles.clearButtonText}>{t('clear')}</Text>
                             </TouchableOpacity>
                         )}
                         
-                        <View style={styles.tipContainer}>
-                            <Text style={styles.tipText}>
-                                💡 Tip: Start typing to see city suggestions
-                            </Text>
+                        <View style={styles.tipContainer} accessibilityRole="text">
+                            <Text style={styles.tipText}>{t('tip')}</Text>
                         </View>
                         {recentSearches.length > 0 && (
                             <View style={styles.recentContainer}>
                                 <View style={styles.recentHeader}>
-                                    <Text style={styles.recentTitle}>Recent Searches</Text>
-                                    <TouchableOpacity style={styles.clearRecentButton} onPress={confirmClearRecentCities}>
-                                        <Text style={styles.clearRecentText}>Clear</Text>
-                                    </TouchableOpacity>
+                                    <Text style={styles.recentTitle}>{t('recent_searches')}</Text>
+                                        <TouchableOpacity style={styles.clearRecentButton} onPress={confirmClearRecentCities}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('clear')}
+                                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                        >
+                                            <Text style={styles.clearRecentText}>{t('clear')}</Text>
+                                        </TouchableOpacity>
                                 </View>
                                 <View style={styles.chipsRow}>
                                     {recentSearches.map((c) => (
@@ -265,6 +275,9 @@ export default function App() {
                                                 setCity(c);
                                                 handleSelectCity(c);
                                             }}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={c}
+                                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                         >
                                             <Text style={styles.chipText}>{c}</Text>
                                         </TouchableOpacity>
@@ -281,15 +294,13 @@ export default function App() {
                         <Text style={styles.loadingText}>
                             Fetching current weather and 5-day forecast...
                         </Text>
-                        <Text style={styles.loadingSubtext}>
-                            Using OpenWeatherMap API (60 calls/minute)
-                        </Text>
+                        <Text style={styles.loadingSubtext} />
                     </View>
                 );
             case 'error':
                 return (
                     <View style={styles.errorContainer}>
-                        <Text style={styles.errorEmoji}>😕</Text>
+                        <Ionicons name="help-circle-outline" size={48} color="#d32f2f" style={{ marginBottom: 10 }} />
                         <Text style={styles.errorText}>{error}</Text>
                         <Text style={styles.errorHint}>
                             Try selecting a city from the suggestions
@@ -297,20 +308,11 @@ export default function App() {
                     </View>
                 );
             case 'weather':
-                return <WeatherCard weatherData={weatherData} units={units} toggleUnits={toggleUnits} />;
+                return <WeatherCard weatherData={weatherData} units={units} toggleUnits={toggleUnits} isCached={isWeatherCached} />;
             case 'forecast':
-                return <ForecastCard forecastData={forecastData} />;
+                return <ForecastCard forecastData={forecastData} isCached={isForecastCached} />;
             case 'footer':
-                return (
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>
-                            Data provided by OpenWeatherMap
-                        </Text>
-                        <Text style={styles.footerSubtext}>
-                            Free Plan • 60 calls/minute • 5-day forecast • Autocomplete
-                        </Text>
-                    </View>
-                );
+                return null; // footer removed to reduce technical clutter
             default:
                 return null;
         }
@@ -487,10 +489,10 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     chip: {
-        backgroundColor: '#f0f0f0',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
+        backgroundColor: '#f6f7f8',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 18,
         marginRight: 8,
         marginBottom: 8,
     },
@@ -515,4 +517,5 @@ const styles = StyleSheet.create({
         color: '#333',
         fontWeight: '600',
     },
+    
 });

@@ -1,0 +1,22 @@
+{
+  "search_label": "Search for a City",
+  "search_placeholder": "Type city name (e.g., London, Paris, Tokyo)...",
+  "clear": "Clear",
+  "tip": "Tip: Start typing to see city suggestions",
+  "recent_searches": "Recent Searches",
+  "clear_recent_confirm": "Are you sure you want to clear recent searches?",
+  "free_plan_info": "Free Plan: 60 calls/minute available",
+  "fetching_weather": "Fetching current weather and 5-day forecast...",
+  "using_api": "Using OpenWeatherMap API",
+  "data_provided_by": "Data provided by OpenWeatherMap",
+  "footer_subtext": "5-day forecast • Autocomplete",
+  "cached": "cached",
+  "feels_like": "Feels like",
+  "sunrise": "Sunrise",
+  "sunset": "Sunset",
+  "humidity": "Humidity",
+  "wind_speed": "Wind Speed",
+  "pressure": "Pressure",
+  "visibility": "Visibility",
+  "forecast_title": "5-Day Forecast"
+}

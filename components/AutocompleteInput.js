@@ -9,8 +9,10 @@ import {
     ActivityIndicator,
     Keyboard
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 // use local timer-based debounce instead of external package
 import { searchCities } from '../services/locationService';
+import t from '../services/i18n';
 
 const AutocompleteInput = ({ 
     value, 
@@ -80,16 +82,19 @@ const AutocompleteInput = ({
         <TouchableOpacity 
             style={styles.suggestionItem}
             onPress={() => handleSelectCity(item)}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name} ${item.state ? item.state + ',' : ''} ${item.country}`}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
             <View style={styles.suggestionContent}>
-                <Text style={styles.cityIcon}>📍</Text>
+                <Ionicons name="location-outline" size={20} color="#999" style={styles.cityIcon} />
                 <View style={styles.suggestionTextContainer}>
                     <Text style={styles.cityName}>{item.name}</Text>
                     <Text style={styles.cityDetails}>
                         {item.state ? `${item.state}, ` : ''}{item.country}
                     </Text>
                 </View>
-                <Text style={styles.chevron}>→</Text>
+                <Ionicons name="chevron-forward" size={18} color="#ccc" style={styles.chevron} />
             </View>
         </TouchableOpacity>
     );
@@ -97,17 +102,18 @@ const AutocompleteInput = ({
     return (
         <View style={[styles.container, style]}>
             <View style={styles.inputContainer}>
-                <Text style={styles.searchIcon}>🔍</Text>
+                <Ionicons name="search-outline" size={18} color="#999" style={styles.searchIcon} />
                 <TextInput
                     ref={inputRef}
                     style={styles.input}
-                    placeholder={placeholder || "Search for a city..."}
+                    placeholder={placeholder || t('search_placeholder')}
                     placeholderTextColor="#999"
                     value={value}
                     onChangeText={onChangeText}
                     onFocus={handleFocus}
                     returnKeyType="search"
                     autoCapitalize="words"
+                    accessibilityLabel={t('search_label')}
                 />
                 {loading && (
                     <ActivityIndicator size="small" color="#007AFF" style={styles.loader} />
@@ -186,7 +192,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     cityIcon: {
-        fontSize: 20,
         marginRight: 12,
     },
     suggestionTextContainer: {
@@ -203,8 +208,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     chevron: {
-        fontSize: 16,
-        color: '#ccc',
+        marginLeft: 8,
     },
 });
 

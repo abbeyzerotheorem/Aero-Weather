@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Switch } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 // Map OpenWeather icon codes to the user-downloaded Lottie JSON files
 const animationMap = {
@@ -24,8 +24,32 @@ const animationMap = {
     '50n': require('../assets/lottie/fog.json'),
 };
 
-const WeatherCard = ({ weatherData, units = 'metric', toggleUnits = () => {} }) => {
+import t from '../services/i18n';
+
+const WeatherCard = ({ weatherData, units = 'metric', toggleUnits = () => {}, isCached = false }) => {
     if (!weatherData) return null;
+
+    const [LottieComp, setLottieComp] = useState(null);
+
+    useEffect(() => {
+        let mounted = true;
+        // Try a synchronous require first (wrapped in try/catch so missing native module won't crash)
+        try {
+            // eslint-disable-next-line global-require
+            const mod = require('lottie-react-native');
+            if (mounted && mod) setLottieComp(() => (mod.default || mod));
+        } catch (err) {
+            // Fall back to dynamic import if available (still may fail in Expo Go)
+            import('lottie-react-native')
+                .then((mod) => {
+                    if (mounted && mod) setLottieComp(() => (mod.default || mod));
+                })
+                .catch(() => {
+                    // If lottie isn't available, keep LottieComp null and render fallback emoji
+                });
+        }
+        return () => { mounted = false };
+    }, []);
 
     // Map OpenWeatherMap icon codes to the existing Lottie JSON assets
     const getLottieAnimation = (iconCode) => {
@@ -33,34 +57,41 @@ const WeatherCard = ({ weatherData, units = 'metric', toggleUnits = () => {} }) 
     };
 
     const timeOfDayText = weatherData.isDayTime ? 'Daytime' : 'Nighttime';
-    const timeOfDayEmoji = weatherData.isDayTime ? '☀️' : '🌙';
     
     // Get the icon code (supports both formats)
     const iconCode = weatherData.weatherIcon || weatherData.icon || '01d';
     const animationSource = getLottieAnimation(iconCode);
     
     // Capitalize weather description
-    const capitalizedWeather = weatherData.weatherText
+    const capitalizedWeather = (weatherData.weatherText || '')
         .split(' ')
+        .filter(Boolean)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
     return (
         <View style={styles.card}>
+            {isCached && (
+                <View style={styles.cacheBadge}>
+                    <Text style={styles.cacheBadgeText}>Cached</Text>
+                </View>
+            )}
             {/* City Name + Units Toggle */}
             <View style={styles.headerContainer}>
                 <View style={styles.headerRow}>
                     <View>
-                        <Text style={styles.cityName}>{weatherData.cityName}</Text>
-                        <Text style={styles.country}>{weatherData.country}</Text>
+                        <Text style={styles.cityName}>{weatherData.cityName || '—'}</Text>
+                        <Text style={styles.country}>{weatherData.country || ''}</Text>
                     </View>
                     <View style={styles.switchContainer}>
-                        <Text style={styles.switchLabel}>{units === 'metric' ? 'Metric' : 'Imperial'}</Text>
+                        <Text style={styles.switchLabel} accessibilityLabel="units">{units === 'metric' ? 'Metric' : 'Imperial'}</Text>
                         <Switch
                             value={units === 'imperial'}
                             onValueChange={toggleUnits}
                             thumbColor="#fff"
                             trackColor={{ false: 'rgba(0,0,0,0.06)', true: 'rgba(0,0,0,0.12)' }}
+                            accessibilityRole="switch"
+                            accessibilityLabel={units === 'metric' ? 'Metric units' : 'Imperial units'}
                         />
                     </View>
                 </View>
@@ -68,14 +99,18 @@ const WeatherCard = ({ weatherData, units = 'metric', toggleUnits = () => {} }) 
             
             {/* Temperature & Animation */}
             <View style={styles.temperatureContainer}>
-                <LottieView 
-                    source={animationSource}
-                    autoPlay
-                    loop
-                    style={styles.lottie}
-                />
+                {LottieComp ? (
+                    <LottieComp
+                        source={animationSource}
+                        autoPlay
+                        loop
+                        style={styles.lottie}
+                    />
+                ) : (
+                    <Ionicons name="cloud-outline" size={40} color="#999" style={styles.lottieFallback} />
+                )}
                 <Text style={styles.temperature}>
-                    {weatherData.temperature}{weatherData.temperatureUnit}
+                    {(weatherData.temperature ?? '--')}{(weatherData.temperatureUnit ?? '')}
                 </Text>
             </View>
             
@@ -83,54 +118,54 @@ const WeatherCard = ({ weatherData, units = 'metric', toggleUnits = () => {} }) 
             <Text style={styles.weatherText}>{capitalizedWeather}</Text>
             
             {/* Feels Like */}
-            <Text style={styles.feelsLike}>
-                Feels like {weatherData.feelsLike}{weatherData.temperatureUnit}
+            <Text style={styles.feelsLike} accessibilityLabel={`${t('feels_like')} ${(weatherData.feelsLike ?? '--')}${(weatherData.temperatureUnit ?? '')}`}>
+                {t('feels_like')} {(weatherData.feelsLike ?? '--')}{(weatherData.temperatureUnit ?? '')}
             </Text>
             
             {/* Day/Night Indicator */}
             <View style={styles.timeContainer}>
-                <Text style={styles.timeEmoji}>{timeOfDayEmoji}</Text>
+                <Ionicons name={weatherData.isDayTime ? 'sunny-outline' : 'moon-outline'} size={20} color="#666" style={styles.timeEmoji} />
                 <Text style={styles.timeText}>{timeOfDayText}</Text>
             </View>
             
             {/* Weather Details Grid */}
             <View style={styles.detailsGrid}>
                 <View style={styles.detailCard}>
-                    <Text style={styles.detailEmoji}>💧</Text>
-                    <Text style={styles.detailLabel}>Humidity</Text>
-                    <Text style={styles.detailValue}>{weatherData.relativeHumidity}%</Text>
+                    <Ionicons name="water-outline" size={28} color="#666" style={styles.detailEmoji} />
+                    <Text style={styles.detailLabel}>{t('humidity')}</Text>
+                    <Text style={styles.detailValue}>{(weatherData.relativeHumidity ?? '--')}%</Text>
                 </View>
                 
                 <View style={styles.detailCard}>
-                    <Text style={styles.detailEmoji}>💨</Text>
-                    <Text style={styles.detailLabel}>Wind Speed</Text>
-                    <Text style={styles.detailValue}>{weatherData.windSpeed} m/s</Text>
+                    <Ionicons name="speedometer-outline" size={28} color="#666" style={styles.detailEmoji} />
+                    <Text style={styles.detailLabel}>{t('wind_speed')}</Text>
+                    <Text style={styles.detailValue}>{(weatherData.windSpeed ?? '--')} {units === 'metric' ? 'm/s' : 'mph'}</Text>
                 </View>
                 
                 <View style={styles.detailCard}>
-                    <Text style={styles.detailEmoji}>📊</Text>
-                    <Text style={styles.detailLabel}>Pressure</Text>
-                    <Text style={styles.detailValue}>{weatherData.pressure} hPa</Text>
+                    <Ionicons name="swap-vertical-outline" size={28} color="#666" style={styles.detailEmoji} />
+                    <Text style={styles.detailLabel}>{t('pressure')}</Text>
+                    <Text style={styles.detailValue}>{(weatherData.pressure ?? '--')} hPa</Text>
                 </View>
                 
                 <View style={styles.detailCard}>
-                    <Text style={styles.detailEmoji}>👁️</Text>
-                    <Text style={styles.detailLabel}>Visibility</Text>
-                    <Text style={styles.detailValue}>{weatherData.visibility} km</Text>
+                    <Ionicons name="eye-outline" size={28} color="#666" style={styles.detailEmoji} />
+                    <Text style={styles.detailLabel}>{t('visibility')}</Text>
+                    <Text style={styles.detailValue}>{(weatherData.visibility ?? '--')} km</Text>
                 </View>
             </View>
             
             {/* Sunrise/Sunset */}
             <View style={styles.sunContainer}>
                 <View style={styles.sunItem}>
-                    <Text style={styles.sunEmoji}>🌅</Text>
-                    <Text style={styles.sunLabel}>Sunrise</Text>
-                    <Text style={styles.sunTime}>{weatherData.sunrise}</Text>
+                    <Ionicons name="sunny-outline" size={24} color="#f39c12" style={styles.sunEmoji} />
+                        <Text style={styles.sunLabel}>{t('sunrise')}</Text>
+                    <Text style={styles.sunTime}>{weatherData.sunrise || '--'}</Text>
                 </View>
                 <View style={styles.sunItem}>
-                    <Text style={styles.sunEmoji}>🌇</Text>
-                    <Text style={styles.sunLabel}>Sunset</Text>
-                    <Text style={styles.sunTime}>{weatherData.sunset}</Text>
+                    <Ionicons name="sunny-outline" size={24} color="#f39c12" style={styles.sunEmoji} />
+                        <Text style={styles.sunLabel}>{t('sunset')}</Text>
+                    <Text style={styles.sunTime}>{weatherData.sunset || '--'}</Text>
                 </View>
             </View>
         </View>
@@ -196,6 +231,10 @@ const styles = StyleSheet.create({
     lottie: {
         width: 80,
         height: 80,
+        marginRight: 15,
+    },
+    lottieFallback: {
+        fontSize: 40,
         marginRight: 15,
     },
     weatherText: {
@@ -279,6 +318,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         color: '#333',
+    },
+    cacheBadge: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        backgroundColor: 'rgba(0,0,0,0.08)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        zIndex: 10,
+    },
+    cacheBadgeText: {
+        fontSize: 12,
+        color: '#333',
+        fontWeight: '600',
     },
 });
 

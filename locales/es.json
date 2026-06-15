@@ -1,0 +1,22 @@
+{
+  "search_label": "Buscar una ciudad",
+  "search_placeholder": "Escribe el nombre de la ciudad (p. ej., Londres, París, Tokio)...",
+  "clear": "Borrar",
+  "tip": "Consejo: Empieza a escribir para ver sugerencias de ciudades",
+  "recent_searches": "Búsquedas recientes",
+  "clear_recent_confirm": "¿Estás seguro de que quieres borrar las búsquedas recientes?",
+  "free_plan_info": "Plan gratuito: 60 llamadas/minuto disponibles",
+  "fetching_weather": "Obteniendo el clima actual y el pronóstico de 5 días...",
+  "using_api": "Usando OpenWeatherMap API",
+  "data_provided_by": "Datos proporcionados por OpenWeatherMap",
+  "footer_subtext": "Pronóstico 5 días • Autocompletar",
+  "cached": "en caché",
+  "feels_like": "Sensación térmica",
+  "sunrise": "Amanecer",
+  "sunset": "Atardecer",
+  "humidity": "Humedad",
+  "wind_speed": "Velocidad del viento",
+  "pressure": "Presión",
+  "visibility": "Visibilidad",
+  "forecast_title": "Pronóstico de 5 días"
+}

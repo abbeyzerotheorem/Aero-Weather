@@ -5,11 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#007AFF"
-    },
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
@@ -21,6 +16,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
+    
     },
     "web": {
       "favicon": "./assets/icon.png"
