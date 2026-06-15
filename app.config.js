@@ -24,6 +24,11 @@ const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || '<REPLACE_WITH_YO
 
 module.exports = ({ config }) => ({
   ...config,
+  // Ensure expo-font is registered so `npx expo install` can update native config
+  plugins: [
+    ...(config.plugins || []),
+    'expo-font'
+  ],
   extra: {
     ...(config.extra || {}),
     OPENWEATHER_API_KEY,
