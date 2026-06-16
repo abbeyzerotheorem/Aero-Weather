@@ -16,10 +16,15 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
-    
     },
     "web": {
       "favicon": "./assets/icon.png"
+    },
+    "extra": {
+      "OPENWEATHER_API_KEY": "856f9906afa8f27519e3078ba8b72c82",
+      "eas": {
+        "projectId": "71500aa6-a096-40ba-9b43-489e0aa575f3"
+      }
     }
   }
 }

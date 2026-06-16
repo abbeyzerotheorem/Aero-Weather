@@ -1,19 +1,24 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const defaultConfig = getDefaultConfig(__dirname);
 
-defaultConfig.transformer = {
+const config = getDefaultConfig(__dirname);
+
+// 1. MERGE Transformer settings instead of overwriting them
+config.transformer = {
+  ...config.transformer,
   babelTransformerPath: require.resolve('react-native-svg-transformer'),
   experimentalImportSupport: false,
   inlineRequires: {
+    ...config.transformer?.inlineRequires,
     // Enable inline requires to improve startup, but blacklist known problematic modules
-    // (some native modules like lottie-react-native can break when inlined)
     blacklist: [ /node_modules\/lottie-react-native\/.*$/ ],
   },
 };
 
-defaultConfig.resolver = {
-  assetExts: defaultConfig.resolver.assetExts.filter(ext => ext !== 'svg'),
-  sourceExts: [...defaultConfig.resolver.sourceExts, 'svg'],
+// 2. MERGE Resolver settings instead of overwriting them
+config.resolver = {
+  ...config.resolver,
+  assetExts: config.resolver.assetExts.filter(ext => ext !== 'svg'),
+  sourceExts: [...config.resolver.sourceExts, 'svg'],
 };
 
-module.exports = defaultConfig;
+module.exports = config;

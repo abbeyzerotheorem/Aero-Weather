@@ -1,12 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-// Try to load dotenv if available (devs should install it for local .env support)
+// Try to load dotenv if available
 try {
-  // eslint-disable-next-line global-require
   require('dotenv').config();
 } catch (e) {
-  // If dotenv isn't installed, try to manually load a .env file
+  // If dotenv isn't installed, try to manually load a local .env file
   const envPath = path.resolve(process.cwd(), '.env');
   if (fs.existsSync(envPath)) {
     const content = fs.readFileSync(envPath, 'utf8');
@@ -20,15 +19,24 @@ try {
   }
 }
 
+// Fallback chain: Check process.env (EAS Secrets) -> fallback to local parsing
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || '<REPLACE_WITH_YOUR_OPENWEATHERMAP_API_KEY>';
 
 module.exports = ({ config }) => ({
   ...config,
-  // Ensure expo-font is registered so `npx expo install` can update native config
+  
+  // 1. FIX: Added mandatory Android configuration for EAS Build
+  android: {
+    ...(config.android || {}),
+    package: "com.oursmedia.aero"
+  },
+
+  // Ensure expo-font is registered
   plugins: [
     ...(config.plugins || []),
     'expo-font'
   ],
+  
   extra: {
     ...(config.extra || {}),
     OPENWEATHER_API_KEY,
